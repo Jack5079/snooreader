@@ -57,7 +57,7 @@ const template = document.querySelector("article#comment");
     cache: "force-cache",
   })
     .then((res) => res.json())
-  children = children.filter(comment => comment.body)
+  children = children.filter(comment => comment.data.body)
   template.querySelector("h1").innerText = title
   template.querySelector("a").innerText = author
   template.querySelector("a").href = `https://reddit.com/u/${author}`

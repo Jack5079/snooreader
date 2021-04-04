@@ -14,12 +14,12 @@ function beep () {
     const bufferSize = 4096
     const whiteNoise = audioContext.createScriptProcessor(bufferSize, 1, 1)
 
-    whiteNoise.onaudioprocess = function (ev) {
+    whiteNoise.addEventListener('audioprocess',  (ev) => {
       const output = ev.outputBuffer.getChannelData(0)
       for (let i = 0; i < bufferSize; i++) {
         output[i] = Math.random() * 2 - 1
       }
-    }
+    })
 
     whiteNoise.connect(audioContext.destination)
     setTimeout(() => {
@@ -30,17 +30,29 @@ function beep () {
   })
 }
 
-/** @param {string} text */
-function say (text) {
+/** @param {string} text @param {HTMLElement} [paragraph] */
+function say (text, paragraph) {
   const voice = random(speechSynthesis.getVoices().filter(voice => voice.lang.startsWith('en-')))
+  let handle
   return new Promise((resolve) => {
     function check () {
       if (speechSynthesis.speaking) {
-        setTimeout(check, 10)
-      } else resolve()
+        handle = requestAnimationFrame(check)
+      } else {
+        cancelAnimationFrame(handle)
+        resolve()
+      }
     }
     const utter = new SpeechSynthesisUtterance(text)
     utter.voice = voice
+    if (paragraph) {
+      paragraph.innerText = ""
+    }
+    utter.addEventListener('boundary', function (event) {
+      if (paragraph) {
+        paragraph.innerText = text.substring(0,event.charIndex + event.charLength)
+      }
+    });
     speechSynthesis.speak(utter)
     check()
   })
@@ -54,7 +66,7 @@ const template = document.querySelector('article#comment');
   let [
     { data: { children: [{ data: { title, author } }] } },
     { data: { children } }
-  ] = await fetch('https://www.reddit.com/r/AskReddit/comments/knvuq2/.json', {
+  ] = await fetch('https://www.reddit.com/r/AskReddit/comments/mjvfa0/.json', {
     cache: 'force-cache'
   })
     .then((res) => res.json())
@@ -73,7 +85,7 @@ const template = document.querySelector('article#comment');
     template.querySelector('p').innerText = comment.body
     template.querySelector('a').innerText = comment.author
     template.querySelector('a').href = `https://reddit.com/u/${comment.author}`
-    await say(comment.body)
+    await say(comment.body, template.querySelector('p'))
     await beep()
   }
 })()

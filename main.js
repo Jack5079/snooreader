@@ -1,3 +1,9 @@
+
+/**
+ * @type {HTMLTemplateElement | null}
+*/
+const template = document.querySelector('article#comment');
+
 /* eslint-env browser */
 /**
  *
@@ -6,10 +12,12 @@
 const random = (arr) => arr[Math.floor(Math.random() * arr.length)]
 function beep () {
   return new Promise((resolve) => {
-    const gif = new Image()
-    gif.src = 'assets/static.gif'
-    gif.classList.add('top')
-    document.body.append(gif)
+    // const gif = new Image()
+    // gif.src = 'assets/static.gif'
+    // gif.classList.add('top')
+    // document.body.append(gif)
+    document.querySelector('canvas').hidden = false
+    template.hidden = true
     const audioContext = new AudioContext()
     const bufferSize = 4096
     const whiteNoise = audioContext.createScriptProcessor(bufferSize, 1, 1)
@@ -24,7 +32,9 @@ function beep () {
     whiteNoise.connect(audioContext.destination)
     setTimeout(() => {
       audioContext.close()
-      gif.remove()
+      // gif.remove()
+      document.querySelector('canvas').hidden = true
+      template.hidden = false
       resolve()
     }, 1000)
   })
@@ -58,10 +68,6 @@ function say (text, paragraph) {
   })
 }
 
-/**
- * @type {HTMLTemplateElement | null}
-*/
-const template = document.querySelector('article#comment');
 (async () => {
   let [
     { data: { children: [{ data: { title, author } }] } },
